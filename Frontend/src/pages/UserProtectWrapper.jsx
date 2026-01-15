@@ -6,9 +6,9 @@ const UserProtectWrapper = ({ children }) => {
   const { user } = useContext(UserDataContext);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-
+   
   useEffect(() => {
-    if (!token) {
+    if (!token ) {
       navigate("/login");
     }
   }, [token]);
