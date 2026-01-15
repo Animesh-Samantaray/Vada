@@ -1,36 +1,34 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const CaptainLogin = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [captainData, setCaptainData] = useState({})
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [captainData, setCaptainData] = useState({});
 
   const submitHandler = (e) => {
-    e.preventDefault()
-    setCaptainData({ email, password })
-    setEmail('')
-    setPassword('')
-  }
+    e.preventDefault();
+    setCaptainData({ email, password });
+    setEmail("");
+    setPassword("");
+  };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center 
-                    bg-gradient-to-br from-neutral-100 via-gray-100 to-neutral-200 px-4">
-
+    <div
+      className="min-h-screen relative flex items-center justify-center 
+                    bg-gradient-to-br from-neutral-100 via-gray-100 to-neutral-200 px-4"
+    >
       {/* Logo – Top Left */}
       <div className="absolute top-6 left-6">
-        <img
-          src={logo}
-          alt="SwiftGo Logo"
-          className="w-28 h-auto"
-        />
+        <img src={logo} alt="SwiftGo Logo" className="w-28 h-auto" />
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-md bg-white/90 backdrop-blur 
-                      rounded-3xl shadow-2xl p-8">
-
+      <div
+        className="w-full max-w-md bg-white/90 backdrop-blur 
+                      rounded-3xl shadow-2xl p-8"
+      >
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
@@ -101,7 +99,7 @@ const CaptainLogin = () => {
         {/* Footer */}
         <div className="space-y-3 text-center text-sm">
           <p className="text-gray-500">
-            New Captain?{' '}
+            New Captain?{" "}
             <Link
               to="/captain-signup"
               className="font-semibold text-black hover:underline"
@@ -118,10 +116,9 @@ const CaptainLogin = () => {
             Sign in as User →
           </Link>
         </div>
-
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CaptainLogin
+export default CaptainLogin;

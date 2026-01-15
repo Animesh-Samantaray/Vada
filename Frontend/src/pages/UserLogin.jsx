@@ -1,22 +1,40 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import React, { useContext, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+import { UserDataContext } from "../context/UserContext";
+import axios from "axios";
 
 const UserLogin = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const { user, setUser } = useContext(UserDataContext);
+  const submitHandler = async (e) => {
+    e.preventDefault();
 
-  const submitHandler = (e) => {
-    e.preventDefault()
-    console.log({ email, password })
-    setEmail('')
-    setPassword('')
-  }
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+
+      if (response.status === 200) {
+        const data = response.data;
+        setUser(data.user);
+        localStorage.setItem("token", data.token);
+        navigate("/home");
+      }
+    } catch (error) {
+      console.log("LOGIN ERROR 👉", error.response?.data);
+    }
+  };
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center
-                    bg-gradient-to-br from-indigo-50 via-sky-50 to-indigo-100 px-4">
-
+    <div
+      className="min-h-screen relative flex flex-col items-center justify-center
+                    bg-gradient-to-br from-indigo-50 via-sky-50 to-indigo-100 px-4"
+    >
       {/* Logo */}
       <div className="absolute top-6 left-6">
         <img src={logo} alt="SwiftGo" className="w-28" />
@@ -24,15 +42,10 @@ const UserLogin = () => {
 
       {/* Card */}
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8">
-
         {/* Header */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Welcome back
-          </h2>
-          <p className="text-gray-500 mt-1">
-            Sign in to book your next ride
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
+          <p className="text-gray-500 mt-1">Sign in to book your next ride</p>
         </div>
 
         {/* Form */}
@@ -68,21 +81,19 @@ const UserLogin = () => {
 
         {/* Signup */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          New to SwiftGo?{' '}
-          <Link to="/signup" className="font-semibold text-indigo-600 hover:underline">
+          New to SwiftGo?{" "}
+          <Link
+            to="/signup"
+            className="font-semibold text-indigo-600 hover:underline"
+          >
             Create an account
           </Link>
         </p>
       </div>
 
       {/* Switch Role Button */}
-      <Link
-        to="/captain-login"
-        className="mt-6 w-full max-w-md"
-      >
-        <button className="secondary-btn">
-          Sign in as Captain
-        </button>
+      <Link to="/captain-login" className="mt-6 w-full max-w-md">
+        <button className="secondary-btn">Sign in as Captain</button>
       </Link>
 
       {/* Utilities */}
@@ -129,7 +140,7 @@ const UserLogin = () => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default UserLogin
+export default UserLogin;

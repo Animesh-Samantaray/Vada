@@ -1,25 +1,27 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+import CaptainContext, { CaptainDataContext } from "../context/CaptainContext";
 
 const CaptainSignup = () => {
   const [formData, setFormData] = useState({
-    firstname: '',
-    lastname: '',
-    email: '',
-    password: '',
-    color: '',
-    plate: '',
-    capacity: '',
-    vehicleType: 'car',
-  })
-
+    firstname: "",
+    lastname: "",
+    email: "",
+    password: "",
+    color: "",
+    plate: "",
+    capacity: "",
+    vehicleType: "car",
+  });
+  const {captain,setCaptain}=useContext(CaptainDataContext);
+  const navigate = useNavigate();
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const submitHandler = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     const captainData = {
       fullname: {
@@ -34,24 +36,26 @@ const CaptainSignup = () => {
         capacity: Number(formData.capacity),
         vehicleType: formData.vehicleType,
       },
-    }
+    };
 
-    console.log(captainData)
-  }
+    console.log(captainData);
+  };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center
-                    bg-gradient-to-br from-neutral-100 via-gray-100 to-neutral-200 px-4">
-
+    <div
+      className="min-h-screen relative flex items-center justify-center
+                    bg-gradient-to-br from-neutral-100 via-gray-100 to-neutral-200 px-4"
+    >
       {/* Logo */}
       <div className="absolute top-6 left-6">
         <img src={logo} alt="SwiftGo" className="w-28" />
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-xl bg-white/90 backdrop-blur
-                      rounded-3xl shadow-2xl p-8">
-
+      <div
+        className="w-full max-w-xl bg-white/90 backdrop-blur
+                      rounded-3xl shadow-2xl p-8"
+      >
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
@@ -63,7 +67,6 @@ const CaptainSignup = () => {
         </div>
 
         <form onSubmit={submitHandler} className="space-y-6">
-
           {/* Name */}
           <div className="grid grid-cols-2 gap-4">
             <input
@@ -168,12 +171,14 @@ const CaptainSignup = () => {
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          Already registered?{' '}
-          <Link to="/captain-login" className="font-semibold text-black hover:underline">
+          Already registered?{" "}
+          <Link
+            to="/captain-login"
+            className="font-semibold text-black hover:underline"
+          >
             Sign in
           </Link>
         </p>
-
       </div>
 
       {/* Tailwind Input Utility */}
@@ -194,7 +199,7 @@ const CaptainSignup = () => {
         `}
       </style>
     </div>
-  )
-}
+  );
+};
 
-export default CaptainSignup
+export default CaptainSignup;

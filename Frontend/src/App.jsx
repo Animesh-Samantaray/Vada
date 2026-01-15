@@ -1,11 +1,14 @@
 import React, { useContext } from 'react'
 import { Routes,Route } from 'react-router-dom'
-import Home from './pages/Home'
 import UserSignup from './pages/UserSignup'
 import UserLogin from './pages/UserLogin'
 import CaptainLogin from './pages/CaptainLogin'
 import CaptainSignup from './pages/CaptainSignup'
 import UserContext, { UserDataContext } from './context/UserContext'
+import Start from './pages/Start'
+import Home from './pages/Home'
+import UserProtectWrapper from './pages/UserProtectWrapper'
+import UserLogout from './pages/UserLogout'
 
 const App = () => {
   const user = useContext(UserDataContext);
@@ -13,11 +16,22 @@ const App = () => {
   return (
     <>
       <Routes>
-        <Route  path='/'  element={<Home/>}/>
+        <Route  path='/'  element={<Start/>}/>
         <Route  path='/signup'  element={<UserSignup/>}/>
         <Route  path='/login'  element={<UserLogin/>}/>
         <Route  path='/captain-login'  element={<CaptainLogin/>}/>
         <Route  path='/captain-signup'  element={<CaptainSignup/>}/>
+        <Route  path='/home'  element={
+          <UserProtectWrapper>
+            <Home/>
+          </UserProtectWrapper>
+
+        }/>
+<Route path='/user/logout'
+          element={<UserProtectWrapper>
+            <UserLogout />
+          </UserProtectWrapper>
+          } />
       </Routes>
     </>
   )

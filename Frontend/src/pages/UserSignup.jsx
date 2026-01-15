@@ -1,59 +1,72 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
-
+import React, { useContext, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+import axios from "axios";
+import UserContext, { UserDataContext } from "../context/UserContext";
 const UserSignup = () => {
-  const [firstname, setFirstname] = useState('')
-  const [lastname, setLastname] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const navigate = useNavigate();
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { user, setUser } = useContext(UserDataContext);
+  const submitHandler = async (e) => {
+    e.preventDefault();
 
-  const submitHandler = (e) => {
-    e.preventDefault()
-
-    const userData = {
+    const formData = {
       fullname: {
         firstname,
         lastname,
       },
       email,
       password,
+    };
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/users/register`,
+      formData,
+      { withCredentials: true }
+    );
+
+    if (response.status === 201) {
+      const data = response.data;
+      localStorage.setItem("token", data.token);
+      console.log(data.user);
+      setUser(data.user);
+      navigate("/home");
     }
 
-    console.log(userData)
-
-    setFirstname('')
-    setLastname('')
-    setEmail('')
-    setPassword('')
-  }
+    setFirstname("");
+    setLastname("");
+    setEmail("");
+    setPassword("");
+  };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center 
-                    bg-gradient-to-br from-neutral-100 via-gray-100 to-neutral-200 px-4">
-
+    <div
+      className="min-h-screen relative flex items-center justify-center 
+                    bg-gradient-to-br from-neutral-100 via-gray-100 to-neutral-200 px-4"
+    >
       {/* Logo – Top Left */}
       <div className="absolute top-6 left-6">
         <img src={logo} alt="SwiftGo Logo" className="w-28 h-auto" />
       </div>
 
       {/* Signup Card */}
-      <div className="w-full max-w-md bg-white/90 backdrop-blur 
-                      rounded-3xl shadow-2xl p-8">
-
+      <div
+        className="w-full max-w-md bg-white/90 backdrop-blur 
+                      rounded-3xl shadow-2xl p-8"
+      >
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
             Create your account
           </h2>
-          <p className="text-gray-500 mt-1">
-            Join SwiftGo and ride smarter 🚀
-          </p>
+          <p className="text-gray-500 mt-1">Join SwiftGo and ride smarter 🚀</p>
         </div>
 
         {/* Form */}
         <form className="space-y-5" onSubmit={submitHandler}>
-
           {/* Name Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -136,7 +149,7 @@ const UserSignup = () => {
 
         {/* Login Redirect */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <Link
             to="/login"
             className="font-semibold text-black hover:underline"
@@ -144,10 +157,9 @@ const UserSignup = () => {
             Sign in
           </Link>
         </p>
-
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserSignup
+export default UserSignup;

@@ -7,7 +7,10 @@ import cookieParser from "cookie-parser";
 import captainRoutes from './routes/captain.route.js';
 const app=express();
 dotenv.config();
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // 👈 exact frontend URL
+  credentials: true               // 👈 allow cookies
+}));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());

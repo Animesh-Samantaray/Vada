@@ -62,7 +62,12 @@ export const loginCaptain = async(req,res)=>{
 
      const token =await  captain.generateAuthToken();
 
-    res.cookie('token', token);
+res.cookie('token', token, {
+  httpOnly: true,
+  sameSite: 'lax',        // 👈 REQUIRED for localhost
+  secure: false,          // 👈 true only in HTTPS (prod)
+  maxAge: 24 * 60 * 60 * 1000
+});
 const demoCaptain = captain.toObject();
 delete demoCaptain.password;
     res.status(200).json({ token, captain:demoCaptain });
