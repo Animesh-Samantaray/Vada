@@ -11,6 +11,9 @@ import UserProtectWrapper from "./pages/UserProtectWrapper";
 import UserLogout from "./pages/UserLogout";
 import CaptainHome from "./pages/CaptainHome";
 import CaptainProtectWrapper from "./pages/CaptainProtectWrapper";
+import CaptainLogout from "./pages/CaptainLogout";
+import LookingForDriver from "./components/LookingForDriver";
+import WaitingForDriver from "./components/WaitingForDriver";
 
 const App = () => {
   const user = useContext(UserDataContext);
@@ -47,6 +50,8 @@ const App = () => {
             </CaptainProtectWrapper>
           }
         />
+        <Route path="/captain/logout" element={<CaptainLogout />}/>
+        <Route path="/try" element={<WaitingForDriver />}/>
       </Routes>
     </>
   );

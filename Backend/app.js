@@ -8,8 +8,8 @@ import captainRoutes from './routes/captain.route.js';
 const app=express();
 dotenv.config();
 app.use(cors({
-  origin: 'http://localhost:5173', // 👈 exact frontend URL
-  credentials: true               // 👈 allow cookies
+  origin: 'http://localhost:5173', 
+  credentials: true       
 }));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -24,3 +24,8 @@ app.use('/users',userRoutes);
 app.use('/captains',captainRoutes);
 
 export default app;
+
+
+app.get('/',()=>{
+
+})
