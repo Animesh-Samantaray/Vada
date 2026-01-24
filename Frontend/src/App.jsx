@@ -14,7 +14,8 @@ import CaptainProtectWrapper from "./pages/CaptainProtectWrapper";
 import CaptainLogout from "./pages/CaptainLogout";
 import LookingForDriver from "./components/LookingForDriver";
 import WaitingForDriver from "./components/WaitingForDriver";
-
+import CaptainRiding from "./pages/CaptainRiding";
+import 'remixicon/fonts/remixicon.css'
 const App = () => {
   const user = useContext(UserDataContext);
   console.log(user);
@@ -51,7 +52,8 @@ const App = () => {
           }
         />
         <Route path="/captain/logout" element={<CaptainLogout />}/>
-        <Route path="/try" element={<WaitingForDriver />}/>
+          <Route
+          path="/captain-riding" element={<CaptainRiding />}/>
       </Routes>
     </>
   );
