@@ -15,10 +15,10 @@ router.get(
 
 router.get(
   "/get-distance-time",
-  body("origin.lat").isFloat(),
-  body("origin.lng").isFloat(),
-  body("destination.lat").isFloat(),
-  body("destination.lng").isFloat(),
+  query("origin.lat").isFloat(),
+  query("origin.lng").isFloat(),
+  query("destination.lat").isFloat(),
+  query("destination.lng").isFloat(),
   authUser,
   getDistanceTime
 );

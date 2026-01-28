@@ -1,18 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { ridesAPI } from "../services/api.js";
 
-const RidePopUp = ({ setRidePopupPanel,setConfirmRidePopupPanel }) => {
-  // hardcoded ride
-  const ride = {
-    user: {
-      fullname: {
-        firstname: "Rahul",
-        lastname: "Das",
-      },
-    },
-    pickup: "Khandagiri Square",
-    destination: "Biju Patnaik Airport",
-    fare: 249,
-    distance: "2.2 KM",
+const RidePopUp = ({ setRidePopupPanel, setConfirmRidePopupPanel, rideData, setCurrentRide }) => {
+  const [loading, setLoading] = useState(false);
+
+  if (!rideData) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-gray-500">No ride available</p>
+      </div>
+    );
+  }
+
+  const handleAcceptRide = async () => {
+    try {
+      setLoading(true);
+      const response = await ridesAPI.acceptRide(rideData._id);
+      if (response.status === 200) {
+        setCurrentRide(response.data);
+        setRidePopupPanel(false);
+        setConfirmRidePopupPanel(true);
+      }
+    } catch (error) {
+      console.error("Failed to accept ride:", error);
+      alert("Failed to accept ride");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,13 +47,15 @@ const RidePopUp = ({ setRidePopupPanel,setConfirmRidePopupPanel }) => {
           <img
             className="h-12 w-12 rounded-full object-cover"
             src="https://i.pinimg.com/236x/af/26/28/af26280b0ca305be47df0b799ed1b12b.jpg"
-            alt=""
+            alt="user"
           />
           <h2 className="text-lg font-medium">
-            {ride.user.fullname.firstname} {ride.user.fullname.lastname}
+            {rideData.user?.fullname?.firstName} {rideData.user?.fullname?.lastName}
           </h2>
         </div>
-        <h5 className="text-lg font-semibold">{ride.distance}</h5>
+        <h5 className="text-lg font-semibold text-blue-600">
+          {rideData.distance || "--"} km
+        </h5>
       </div>
 
       <div className="w-full mt-5">
@@ -47,7 +63,7 @@ const RidePopUp = ({ setRidePopupPanel,setConfirmRidePopupPanel }) => {
           <i className="ri-map-pin-user-fill"></i>
           <div>
             <h3 className="text-lg font-medium">Pickup</h3>
-            <p className="text-sm text-gray-600">{ride.pickup}</p>
+            <p className="text-sm text-gray-600">{rideData.pickup}</p>
           </div>
         </div>
 
@@ -55,28 +71,32 @@ const RidePopUp = ({ setRidePopupPanel,setConfirmRidePopupPanel }) => {
           <i className="ri-map-pin-2-fill"></i>
           <div>
             <h3 className="text-lg font-medium">Destination</h3>
-            <p className="text-sm text-gray-600">{ride.destination}</p>
+            <p className="text-sm text-gray-600">{rideData.destination}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-5 p-3">
           <i className="ri-currency-line"></i>
           <div>
-            <h3 className="text-lg font-medium">₹{ride.fare}</h3>
+            <h3 className="text-lg font-medium">₹{rideData.fare}</h3>
             <p className="text-sm text-gray-600">Cash</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-5 flex items-center  justify-between">
-        <button className="bg-green-600 w-full text-white font-semibold p-2 rounded-lg"
-        onClick={()=>setConfirmRidePopupPanel(true)}
+      <div className="mt-5 flex items-center gap-2 justify-between">
+        <button
+          className={`bg-green-600 w-full text-white font-semibold p-2 rounded-lg ${
+            loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
+          }`}
+          onClick={handleAcceptRide}
+          disabled={loading}
         >
-          Accept
+          {loading ? "Accepting..." : "Accept"}
         </button>
         <button
           onClick={() => setRidePopupPanel(false)}
-          className="mt-2 w-full bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg"
+          className="mt-0 w-full bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg hover:bg-gray-400"
         >
           Ignore
         </button>

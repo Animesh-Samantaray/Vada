@@ -8,8 +8,10 @@ export const getFare=async(pickup,destination)=>{
     throw new Error('Pickup and destination are required');
  }
 
- const distanceTime = await getDistanceTime1(pickup,destination);
-  const baseFare = {
+ try {
+   const distanceTime = await getDistanceTime1(pickup,destination);
+   
+   const baseFare = {
         auto: 30,
         car: 50,
         moto: 20
@@ -35,6 +37,15 @@ export const getFare=async(pickup,destination)=>{
     };
 
     return fare;
+ } catch(error){
+   console.error('Fare calculation error:', error.message);
+   // Return default fares if calculation fails
+   return {
+     auto: 50,
+     car: 100,
+     moto: 30
+   };
+ }
 }
 export const createRide1 = async({user, pickup, destination, vehicleType})=>{
     if(!user  || !pickup || !destination  || !vehicleType){

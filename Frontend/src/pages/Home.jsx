@@ -1,231 +1,236 @@
-import React, { useRef, useState } from "react";
-import map2 from "../assets/map2.jpg";
-import logo from "../assets/logo.png";
+import React, { useRef, useState, useEffect, useContext, useCallback } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import "remixicon/fonts/remixicon.css";
+
+import logo from "../assets/logo.png";
 import LocationSearchPanel from "../components/LocationSearchPanel";
 import VehiclePanel from "../components/VehiclePanel";
 import ConfrimedRide from "../components/ConfrimedRide";
 import LookingForDriver from "../components/LookingForDriver";
 import WaitingForDriver from "../components/WaitingForDriver";
+import LiveMap from "../components/LiveMap";
+
+import { UserDataContext } from "../context/UserContext";
+import socketService from "../services/socket";
+import geolocationService from "../services/geolocation";
 
 const Home = () => {
+  const { user } = useContext(UserDataContext);
+
+  /* ---------------- STATE ---------------- */
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
+
   const [panelOpen, setPanelOpen] = useState(false);
   const [vehiclePanelOpen, setVehiclePanelOpen] = useState(false);
   const [confirmedRidePanel, setConfirmRidePanel] = useState(false);
   const [vehicleFound, setVehicleFound] = useState(false);
   const [waitingForDriver, setWaitingForDriver] = useState(false);
 
+  const [selectedVehicle, setSelectedVehicle] = useState("");
+  const [fare, setFare] = useState(0);
 
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [destinationLocation, setDestinationLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [captainLocation, setCaptainLocation] = useState(null);
 
-
+  /* ---------------- REFS ---------------- */
   const panelRef = useRef(null);
   const panelCloseRef = useRef(null);
   const vehiclePanelRef = useRef(null);
   const confirmRidePanelRef = useRef(null);
   const vehicleFoundRef = useRef(null);
-const waitingForDriverRef = useRef(null);
+  const waitingForDriverRef = useRef(null);
 
-  const submitHandler = (e) => e.preventDefault();
+  /* ---------------- SOCKET ---------------- */
+  useEffect(() => {
+    // Ensure socket is initialized before registering listeners.
+    socketService.connect();
 
-  useGSAP(() => {
-    if (!panelRef.current) return;
-
-    if (panelOpen) {
-      gsap.to(panelRef.current, {
-        height: "70%",
-        padding: 24,
-        duration: 0.35,
-        ease: "power3.out",
-      });
-      gsap.to(panelCloseRef.current, { y: 0, duration: 0.2 });
-    } else {
-      gsap.to(panelRef.current, {
-        height: "0%",
-        padding: 0,
-        duration: 0.3,
-        ease: "power3.in",
-      });
-      gsap.to(panelCloseRef.current, { y: -10, duration: 0.2 });
+    if (user?._id) {
+      socketService.userJoin(user._id);
     }
+
+    const handleCaptainLoc = (data) => {
+      if (data?.location) setCaptainLocation(data.location);
+    };
+
+    const handleRideAccepted = (data) => {
+      if (data?.captainDetails?.location) setCaptainLocation(data.captainDetails.location);
+      setWaitingForDriver(true);
+    };
+
+    socketService.onCaptainLocationUpdate(handleCaptainLoc);
+    socketService.onRideAccepted(handleRideAccepted);
+
+    return () => {
+      socketService.offListener("captain-location");
+      socketService.offListener("ride-accepted");
+    };
+  }, [user?._id]);
+
+  /* ---------------- REAL-TIME GEOLOCATION (Like Uber) ---------------- */
+  useEffect(() => {
+    // Get initial position first
+    geolocationService
+      .getCurrentPosition()
+      .then((location) => {
+        setUserLocation(location);
+      })
+      .catch((err) => {
+        console.error('Failed to get initial location:', err.message);
+        alert('Please enable location services in your browser to use the app');
+      });
+
+    // Start continuous real-time tracking
+    geolocationService.startTracking(
+      (location) => {
+        // Update user location state
+        setUserLocation(location);
+
+        // Emit location to other users in real-time via Socket.io
+        if (user?._id) {
+          socketService.emitUserLocationUpdate(user._id, {
+            lat: location.lat,
+            lng: location.lng,
+          });
+        }
+      },
+      (error) => {
+        console.error('Geolocation tracking error:', error.message);
+      }
+    );
+
+    return () => {
+      geolocationService.stopTracking();
+    };
+  }, [user?._id]);
+
+  const handleOpenPanel = useCallback(() => setPanelOpen(true), []);
+
+  /* ---------------- GSAP ---------------- */
+  useGSAP(() => {
+    gsap.to(panelRef.current, {
+      height: panelOpen ? "70%" : "0%",
+      padding: panelOpen ? 24 : 0,
+      duration: 0.35,
+    });
   }, [panelOpen]);
 
   useGSAP(() => {
-    if (!vehiclePanelRef.current) return;
-
-    if (vehiclePanelOpen) {
-      gsap.to(vehiclePanelRef.current, {
-        transform: "translateY(0)",
-        duration: 0.35,
-        ease: "power3.out",
-      });
-    } else {
-      gsap.to(vehiclePanelRef.current, {
-        transform: "translateY(100%)",
-        duration: 0.35,
-        ease: "power3.in",
-      });
-    }
+    gsap.to(vehiclePanelRef.current, {
+      y: vehiclePanelOpen ? "0%" : "100%",
+      duration: 0.35,
+    });
   }, [vehiclePanelOpen]);
 
-//   useGSAP(() => {
-//   const el = waitingForDriverRef.current;
-//   if (!el) return;
-
-//   gsap.to(el, {
-//     y: waitingForDriver ? "0%" : "100%",
-//     duration: 0.35,
-//     ease: "power3.out",
-//   });
-// }, [waitingForDriver]);
-
-useGSAP(() => {
-  gsap.to(waitingForDriverRef.current, {
-    y: waitingForDriver ? "0%" : "100%",
-  });
-}, [waitingForDriver]);
-
   useGSAP(() => {
-    if (!confirmRidePanelRef.current) return;
-
-    gsap.set(confirmRidePanelRef.current, {
-      y: "100%",
+    gsap.to(confirmRidePanelRef.current, {
+      y: confirmedRidePanel ? "0%" : "100%",
+      duration: 0.35,
     });
-
-    if (confirmedRidePanel) {
-      gsap.to(confirmRidePanelRef.current, {
-        y: "0%",
-        duration: 0.35,
-        ease: "power3.out",
-      });
-    } else {
-      gsap.to(confirmRidePanelRef.current, {
-        y: "100%",
-        duration: 0.35,
-        ease: "power3.in",
-      });
-    }
   }, [confirmedRidePanel]);
 
-
   useGSAP(() => {
-    if (!vehicleFoundRef.current) return;
-
-    gsap.set(vehicleFoundRef.current, {
-      y: "100%",
+    gsap.to(vehicleFoundRef.current, {
+      y: vehicleFound ? "0%" : "100%",
+      duration: 0.35,
     });
-
-
-    if (vehicleFound) {
-      gsap.to(vehicleFoundRef.current, {
-        y: "0%",
-        duration: 0.35,
-        ease: "power3.out",
-      });
-    } else {
-      gsap.to(vehicleFoundRef.current, {
-        y: "100%",
-        duration: 0.35,
-        ease: "power3.in",
-      });
-    }
   }, [vehicleFound]);
 
+  useGSAP(() => {
+    gsap.to(waitingForDriverRef.current, {
+      y: waitingForDriver ? "0%" : "100%",
+      duration: 0.35,
+    });
+  }, [waitingForDriver]);
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="h-screen w-screen relative overflow-hidden">
-      <img
-        src={map2}
-        alt="map"
-        className="absolute inset-0 h-full w-full object-cover"
+      <LiveMap
+        pickupLocation={pickupLocation}
+        destinationLocation={destinationLocation}
+        userLocation={userLocation}
+        captainLocation={captainLocation}
       />
 
-      <img src={logo} alt="logo" className="w-16 absolute left-5 top-5 z-20" />
+      <img src={logo} className="w-16 absolute left-5 top-5 z-20" />
 
       <div className="absolute inset-0 z-10 flex flex-col justify-end">
-        <div className="h-[30%] bg-white p-6 relative shadow-lg">
+        <div className="bg-white p-6 shadow-lg">
           {panelOpen && (
             <h5
               ref={panelCloseRef}
               onClick={() => setPanelOpen(false)}
               className="absolute top-6 right-6 text-2xl cursor-pointer"
             >
-              <i className="ri-arrow-down-wide-line"></i>
+              <i className="ri-arrow-down-wide-line" />
             </h5>
           )}
 
-          <h4 className="text-3xl font-semibold">Find a trip</h4>
+          <h4 className="text-2xl font-semibold">Find a trip</h4>
 
-          <form onSubmit={submitHandler} className="flex flex-col gap-3 mt-4">
-            <input
-              value={pickup}
-              onChange={(e) => setPickup(e.target.value)}
-              onClick={() => setPanelOpen(true)}
-              placeholder="Add a pickup location"
-              className="bg-gray-100 px-4 py-2 rounded-lg"
-            />
-            <input
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              onClick={() => setPanelOpen(true)}
-              placeholder="Enter your destination"
-              className="bg-gray-100 px-4 py-2 rounded-lg"
-            />
-          </form>
+          <input
+            value={pickup}
+            onChange={(e) => setPickup(e.target.value)}
+            onClick={() => setPanelOpen(true)}
+            placeholder="Pickup location"
+            className="w-full mt-3 p-2 bg-gray-100 rounded"
+          />
+
+          <input
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+            onClick={() => setPanelOpen(true)}
+            placeholder="Destination"
+            className="w-full mt-2 p-2 bg-gray-100 rounded"
+          />
         </div>
 
-        <div ref={panelRef} className="bg-white h-0 overflow-hidden shadow-2xl">
+        <div ref={panelRef} className="bg-white overflow-hidden">
           <LocationSearchPanel
             setPanelOpen={setPanelOpen}
             setVehiclePanelOpen={setVehiclePanelOpen}
+            setPickup={setPickup}
+            setDestination={setDestination}
+            setPickupLocation={setPickupLocation}
+            setDestinationLocation={setDestinationLocation}
+            activeField={pickup && !destination ? "destination" : "pickup"}
           />
         </div>
       </div>
 
-      {vehiclePanelOpen && (
-        <div
-          className="absolute inset-0 z-20"
-          onClick={() => setVehiclePanelOpen(false)}
-        />
-      )}
-
-      <div
-        ref={vehiclePanelRef}
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl translate-y-full z-30"
-      >
+      <div ref={vehiclePanelRef} className="absolute bottom-0 w-full z-30">
         <VehiclePanel
-          setConfirmRidePanel={setConfirmRidePanel}
+          pickup={pickup}
+          destination={destination}
+          setSelectedVehicle={setSelectedVehicle}
+          setFare={setFare}
           setVehiclePanelOpen={setVehiclePanelOpen}
+          setConfirmRidePanel={setConfirmRidePanel}
         />
       </div>
 
-      <div
-        ref={confirmRidePanelRef}
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl translate-y-full z-40"
-      >
-        <ConfrimedRide setConfirmRidePanel={setConfirmRidePanel}
-        setVehicleFound={setVehicleFound}
+      <div ref={confirmRidePanelRef} className="absolute bottom-0 w-full z-40">
+        <ConfrimedRide
+          pickup={pickup}
+          destination={destination}
+          vehicleType={selectedVehicle}
+          fare={fare}
+          setVehicleFound={setVehicleFound}
         />
       </div>
 
-      <div
-        ref={vehicleFoundRef}
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl translate-y-full z-40"
-      >
-        <LookingForDriver setConfirmRidePanel={setConfirmRidePanel}  setVehicleFound={setVehicleFound}/>
+      <div ref={vehicleFoundRef} className="absolute bottom-0 w-full z-40">
+        <LookingForDriver />
       </div>
 
-      <div
-  ref={waitingForDriverRef}
-  className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl translate-y-full z-50"
->
-  <WaitingForDriver setWaitingForDriver={setWaitingForDriver} />
-</div>
-
-  
+      <div ref={waitingForDriverRef} className="absolute bottom-0 w-full z-50">
+        <WaitingForDriver />
+      </div>
     </div>
   );
 };

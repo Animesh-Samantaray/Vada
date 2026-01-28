@@ -28,7 +28,15 @@ export const getDistanceTime=async(req,res)=>{
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { origin, destination } = req.body;
+        const origin = {
+            lat: parseFloat(req.query['origin.lat']),
+            lng: parseFloat(req.query['origin.lng'])
+        };
+        
+        const destination = {
+            lat: parseFloat(req.query['destination.lat']),
+            lng: parseFloat(req.query['destination.lng'])
+        };
 
         const distanceTime = await getDistanceTime1(origin, destination);
 
@@ -53,7 +61,7 @@ export const  getAutoCompleteSuggestions = async(req , res,next )=>{
 
         const suggestions = await getAutoCompleteSuggestion(input);
         
-        res.status(200).json(suggestions);
+        res.status(200).json({ suggestions });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Internal server error' });

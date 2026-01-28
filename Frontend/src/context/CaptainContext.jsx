@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from "react";
 export const CaptainDataContext = createContext(null);
 
 export const useCaptain = () => {
-  const context = useContext(CaptainContext);
+  const context = useContext(CaptainDataContext);
   if (!context) {
     throw new Error("Error at context");
   }

@@ -1,28 +1,56 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { ridesAPI } from '../services/api.js';
 
 const ConfirmRidePopUp = (props) => {
-  const submitHandler=async(e)=>{
-    e.preventDefault();
-  }
-  const [otp, setOtp] = useState('') ;
-const ride = {
+  const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const ride = props.currentRide || {
     user: {
       fullname: {
-        firstname: "Virat",
-        lastname: "Babu",
+        firstName: "User",
+        lastName: "Name",
       },
     },
-    pickup: "Khandagiri Square",
-    destination: "Biju Patnaik Airport",
-    fare: 249,
-    distance: "2.2 KM",
+    pickup: "Not selected",
+    destination: "Not selected",
+    fare: 0,
+    distance: "-- KM",
   };
-  
-  const navigate=useNavigate();
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+
+    if (!otp || otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const response = await ridesAPI.startRide(ride._id, otp);
+
+      if (response.status === 200) {
+        // Ride started successfully
+        props.setRidePopupPanel(false);
+        props.setConfirmRidePopupPanel(false);
+        navigate('/captain-riding');
+      }
+    } catch (error) {
+      console.error('Failed to start ride:', error);
+      setError(error.response?.data?.message || 'Failed to start ride. Invalid OTP?');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-      <div className='h-screen'>
+    <div className='h-screen'>
       <h5
         className="p-1 text-center w-[93%] absolute top-0"
         onClick={() => props.setRidePopupPanel(false)}
@@ -39,10 +67,10 @@ const ride = {
           <img
             className="h-12 w-12 rounded-full object-cover"
             src="https://i.pinimg.com/236x/af/26/28/af26280b0ca305be47df0b799ed1b12b.jpg"
-            alt=""
+            alt="user"
           />
           <h2 className="text-lg font-medium">
-            {ride.user.fullname.firstname} {ride.user.fullname.lastname}
+            {ride.user?.fullname?.firstName} {ride.user?.fullname?.lastName}
           </h2>
         </div>
         <h5 className="text-lg font-semibold">{ride.distance}</h5>
@@ -74,34 +102,51 @@ const ride = {
         </div>
       </div>
 
-      <div className="mt-5 w-full flex flex-col items-center justify-center">
-        <form action="" onSubmit={(e)=>{
-          submitHandler(e)
-        }}>
-           <input type="Number"  placeholder='Enter otp' 
-           onChange={(e)=>{setOtp(e.target.value)}}
-           value={otp}
-           className="bg-[#eee]  px-6 py-4 rounded-lg " />
+      {error && (
+        <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-5 w-full flex flex-col items-center justify-center gap-3">
+        <form onSubmit={submitHandler} className="w-full">
+          <input
+            type="text"
+            placeholder='Enter 6-digit OTP'
+            onChange={(e) => {
+              setOtp(e.target.value);
+              setError('');
+            }}
+            value={otp}
+            maxLength="6"
+            className="w-full bg-[#eee] px-6 py-4 rounded-lg text-center tracking-widest"
+          />
+          <button
+            type="submit"
+            disabled={loading || otp.length !== 6}
+            className={`w-full mt-3 text-white font-semibold p-2 rounded-lg transition ${
+              loading || otp.length !== 6
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {loading ? 'Starting ride...' : 'Start Ride'}
+          </button>
         </form>
-       
-        <button className="bg-green-600 w-full text-white font-semibold p-2 rounded-lg"
-        onClick={()=>{ props.setConfirmRidePopupPanel(true);
-          navigate('/captain-riding');
-        }}
-        >
-          Confirm
-        </button>
+
         <button
-          onClick={()=>{ props.setConfirmRidePopupPanel(false)
-            props.setRidePopupPanel(false)
+          onClick={() => {
+            props.setConfirmRidePopupPanel(false);
+            props.setRidePopupPanel(true);
           }}
-          className="mt-2 w-full bg-red-500 text-white font-semibold p-2 rounded-lg"
+          className="mt-2 w-full bg-red-500 text-white font-semibold p-2 rounded-lg hover:bg-red-600"
         >
           Cancel
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ConfirmRidePopUp
+export default ConfirmRidePopUp;
+
